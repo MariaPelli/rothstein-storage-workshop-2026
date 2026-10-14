@@ -1,0 +1,195 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sql>
+  <!--WWW SQL Designer 2.7 XML. Source: MariaPelli/rothstein-storage-workshop-2026, commit 7aa96e41807319a65f0ed1c142a10b67e2f64d80.-->
+  <!--SQLite model for diagram import. CHECK and STRICT rules are documented as comments; no data rows are included.-->
+  <datatypes db="sqlite">
+    <group label="SQLite Ganzzahlen" color="rgb(220,232,242)">
+      <type label="INTEGER" sql="INTEGER" length="0" quote="" note="SQLite INTEGER; auch für boolesche 0/1-Werte verwendet." />
+    </group>
+    <group label="SQLite Text" color="rgb(224,239,228)">
+      <type label="TEXT" sql="TEXT" length="0" quote="'" note="SQLite TEXT; Datums- und Zeitangaben bleiben wie im Repository Text." />
+    </group>
+  </datatypes>
+  <table name="agencies" x="45" y="55">
+    <row name="agency_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="name" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>agency_id</part>
+    </key>
+    <key type="UNIQUE" name="">
+      <part>name</part>
+    </key>
+    <comment>Katalogstelle laut Quelle; nicht automatisch Urheberin oder alleinige Herausgeberin des Inhalts. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="releases" x="45" y="245">
+    <row name="release_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="release_date" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>ISO-formatierte Angabe als TEXT; kein nativer DATETIME-Typ und keine vollständige Kalenderprüfung durch STRICT.</comment>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>release_id</part>
+    </key>
+    <key type="UNIQUE" name="">
+      <part>release_date</part>
+    </key>
+    <comment>Veröffentlichungsrunden. release_date wird normalisiert ausschliesslich hier gespeichert. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="catalog_entries" x="350" y="55">
+    <row name="entry_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>Technische, deterministische ID des Katalogeintrags; kein Nachweis der Identität eines realen Ereignisses.</comment>
+    </row>
+    <row name="source_key" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>Quellbezeichnung, nicht UNIQUE: FBI-UAP-D014 kommt im Snapshot zweimal vor. Enthält den nicht eindeutigen Index idx_catalog_source_key aus der optionalen Vertiefung C.</comment>
+    </row>
+    <row name="source_row" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>Quellzeilenkennung im Snapshot; keine PDF-Seitennummer. UNIQUE, CHECK (source_row &gt; 0).</comment>
+    </row>
+    <row name="title" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="agency_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <relation table="agencies" row="agency_id" />
+    </row>
+    <row name="release_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <relation table="releases" row="release_id" />
+    </row>
+    <row name="media_type" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>CHECK (media_type IN ('PDF','VID','IMG','AUD')).</comment>
+    </row>
+    <row name="description" null="1" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="location_raw" null="1" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="redaction_reported" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>Boolesches Portalflag als INTEGER: CHECK (redaction_reported IN (0,1)). 0 bestätigt nicht die Abwesenheit von Schwärzungen.</comment>
+    </row>
+    <row name="description_category" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>Aus Katalogtitel/-beschreibung abgeleitet, kein vollständiger PDF-Inhaltsbefund. not_classified bedeutet nicht Originalaufnahme.</comment>
+    </row>
+    <row name="incident_date_raw" null="1" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>Originalangabe zum Incident Date; ungenaue und mehrdeutige Datierungen bleiben erhalten.</comment>
+    </row>
+    <row name="incident_date_precision" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="incident_year" null="1" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>Genau ein zuordenbares Jahr laut Katalog; NULL, wenn nicht eindeutig ableitbar.</comment>
+    </row>
+    <row name="incident_month" null="1" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>CHECK (incident_month BETWEEN 1 AND 12); NULL zulässig.</comment>
+    </row>
+    <row name="incident_day" null="1" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>ISO-formatierte Angabe als TEXT; kein nativer DATETIME-Typ und keine vollständige Kalenderprüfung durch STRICT.</comment>
+    </row>
+    <row name="annual_eligible" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>CHECK (annual_eligible IN (0,1)); CHECK (annual_eligible = 0 OR incident_year IS NOT NULL).</comment>
+    </row>
+    <row name="date_exclusion_reason" null="1" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>Grund für den Ausschluss aus der Jahreszählung; NULL zulässig.</comment>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>entry_id</part>
+    </key>
+    <key type="INDEX" name="idx_catalog_source_key">
+      <part>source_key</part>
+    </key>
+    <key type="UNIQUE" name="">
+      <part>source_row</part>
+    </key>
+    <comment>Eine Zeile ist ein Katalogeintrag, kein bestätigtes Ereignis. source_key ist bewusst nicht eindeutig. annual_eligible setzt bei Wert 1 ein incident_year voraus. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="entry_assets" x="695" y="80">
+    <row name="entry_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <relation table="catalog_entries" row="entry_id" />
+    </row>
+    <row name="asset_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <relation table="assets" row="asset_id" />
+    </row>
+    <row name="source_field" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>Originales Quellfeld, aus dem die Zuordnung stammt.</comment>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>entry_id</part>
+      <part>asset_id</part>
+    </key>
+    <comment>n:m-Zwischentabelle zwischen Katalogeinträgen und Assets; vollständige Definition aus der Musterlösung. Der zusammengesetzte Primärschlüssel verhindert doppelte Eintrag-Asset-Paare. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="assets" x="980" y="80">
+    <row name="asset_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="locator_type" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>Typ des Locators, z.B. URL oder Medienkennung; mit locator gemeinsam UNIQUE.</comment>
+    </row>
+    <row name="locator" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>Normalisierte Referenz; mit locator_type gemeinsam UNIQUE.</comment>
+    </row>
+    <row name="format_hint" null="1" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>asset_id</part>
+    </key>
+    <key type="UNIQUE" name="">
+      <part>locator_type</part>
+      <part>locator</part>
+    </key>
+    <comment>Normalisierte Datei-/Medienverweise (Asset-Locators), keine vollständige Deduplizierung nach Dateiinhalten. Das Paar (locator_type, locator) ist eindeutig. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="portal_pairings" x="45" y="440">
+    <row name="pairing_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="source_entry_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <relation table="catalog_entries" row="entry_id" />
+      <comment>Ausgangseintrag des gerichteten Portalverweises.</comment>
+    </row>
+    <row name="target_entry_id" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <relation table="catalog_entries" row="entry_id" />
+      <comment>Zieleintrag des gerichteten Portalverweises.</comment>
+    </row>
+    <row name="source_field" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="raw_reference" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="resolution_rule" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>pairing_id</part>
+    </key>
+    <comment>Gerichtete, tatsächlich aufgelöste Portalverweise zwischen Katalogeinträgen. Quellfeld und Auflösungsregel bleiben als Beleg erhalten; ungeklärte Verweise liegen ausserhalb dieser Tabelle. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+</sql>

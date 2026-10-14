@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sql>
+  <!--WWW SQL Designer 2.7 XML. Source: MariaPelli/rothstein-storage-workshop-2026, commit 7aa96e41807319a65f0ed1c142a10b67e2f64d80.-->
+  <!--SQLite model for diagram import. CHECK and STRICT rules are documented as comments; no data rows are included.-->
+  <datatypes db="sqlite">
+    <group label="SQLite Ganzzahlen" color="rgb(220,232,242)">
+      <type label="INTEGER" sql="INTEGER" length="0" quote="" note="SQLite INTEGER; auch für boolesche 0/1-Werte verwendet." />
+    </group>
+    <group label="SQLite Text" color="rgb(224,239,228)">
+      <type label="TEXT" sql="TEXT" length="0" quote="'" note="SQLite TEXT; Datums- und Zeitangaben bleiben wie im Repository Text." />
+    </group>
+  </datatypes>
+  <table name="users" x="355" y="40">
+    <row name="user_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>SQLite INTEGER PRIMARY KEY (ROWID); ohne explizite AUTOINCREMENT-Klausel.</comment>
+    </row>
+    <row name="username" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <row name="created_at" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>ISO-formatierte Angabe als TEXT; kein nativer DATETIME-Typ und keine vollständige Kalenderprüfung durch STRICT.</comment>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>user_id</part>
+    </key>
+    <key type="UNIQUE" name="">
+      <part>username</part>
+    </key>
+    <comment>Nutzerkonten der synthetischen Microblogging-Plattform. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="posts" x="355" y="285">
+    <row name="post_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>SQLite INTEGER PRIMARY KEY (ROWID); ohne explizite AUTOINCREMENT-Klausel.</comment>
+    </row>
+    <row name="user_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <relation table="users" row="user_id" />
+    </row>
+    <row name="created_at" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>ISO-formatierte Angabe als TEXT; kein nativer DATETIME-Typ und keine vollständige Kalenderprüfung durch STRICT.</comment>
+    </row>
+    <row name="text" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>post_id</part>
+    </key>
+    <key type="INDEX" name="idx_posts_user_created">
+      <part>user_id</part>
+      <part>created_at</part>
+    </key>
+    <comment>Beiträge. Jeder Beitrag gehört zu genau einem Nutzerkonto. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="likes" x="50" y="490">
+    <row name="like_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>SQLite INTEGER PRIMARY KEY (ROWID); ohne explizite AUTOINCREMENT-Klausel.</comment>
+    </row>
+    <row name="post_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <relation table="posts" row="post_id" />
+    </row>
+    <row name="user_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <relation table="users" row="user_id" />
+    </row>
+    <row name="created_at" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>ISO-formatierte Angabe als TEXT; kein nativer DATETIME-Typ und keine vollständige Kalenderprüfung durch STRICT.</comment>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>like_id</part>
+    </key>
+    <key type="INDEX" name="idx_likes_post">
+      <part>post_id</part>
+    </key>
+    <comment>Vergebene Likes als einzelne Interaktionen. Das Schema erzwingt keine Eindeutigkeit des Paars (post_id, user_id). Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="comments" x="665" y="490">
+    <row name="comment_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <comment>SQLite INTEGER PRIMARY KEY (ROWID); ohne explizite AUTOINCREMENT-Klausel.</comment>
+    </row>
+    <row name="post_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <relation table="posts" row="post_id" />
+    </row>
+    <row name="user_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <relation table="users" row="user_id" />
+    </row>
+    <row name="created_at" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>ISO-formatierte Angabe als TEXT; kein nativer DATETIME-Typ und keine vollständige Kalenderprüfung durch STRICT.</comment>
+    </row>
+    <row name="text" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>comment_id</part>
+    </key>
+    <key type="INDEX" name="idx_comments_post">
+      <part>post_id</part>
+    </key>
+    <comment>Kommentare als einzelne Interaktionen. Eine Person kann mehrere Kommentare zum selben Beitrag verfassen. Alle Tabellen sind im Repository STRICT.</comment>
+  </table>
+  <table name="follows" x="50" y="40">
+    <row name="src_user_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <relation table="users" row="user_id" />
+      <comment>Ausgangskonto: folgt dem Konto dst_user_id. SQLite INTEGER PRIMARY KEY (ROWID); ohne explizite AUTOINCREMENT-Klausel.</comment>
+    </row>
+    <row name="dst_user_id" null="0" autoincrement="0">
+      <datatype>INTEGER</datatype>
+      <relation table="users" row="user_id" />
+      <comment>Zielkonto: wird vom Konto src_user_id gefolgt. SQLite INTEGER PRIMARY KEY (ROWID); ohne explizite AUTOINCREMENT-Klausel.</comment>
+    </row>
+    <row name="since" null="0" autoincrement="0">
+      <datatype>TEXT</datatype>
+      <comment>ISO-formatierte Angabe als TEXT; kein nativer DATETIME-Typ und keine vollständige Kalenderprüfung durch STRICT.</comment>
+    </row>
+    <key type="PRIMARY" name="">
+      <part>src_user_id</part>
+      <part>dst_user_id</part>
+    </key>
+    <key type="INDEX" name="idx_follows_dst">
+      <part>dst_user_id</part>
+    </key>
+    <comment>Gerichtete Follow-Beziehung: src_user_id folgt dst_user_id. Zusammengesetzter Primärschlüssel; keine Selbstbeziehung. Alle Tabellen sind im Repository STRICT. CHECK (src_user_id &lt;&gt; dst_user_id).</comment>
+  </table>
+</sql>
